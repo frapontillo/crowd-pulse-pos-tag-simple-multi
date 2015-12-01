@@ -5,7 +5,7 @@ Multi language simpler Crowd Pulse Part-of-Speech tagger.
 
 --------------------------------
 
-The `simplepostagger-it` plugin reduces complex POS-tags to the "n", "v", "a", "r" set.
+The `simplepostagger-multi` plugin reduces complex POS-tags to the "n", "v", "a", "r" set.
 
 ## License
 
