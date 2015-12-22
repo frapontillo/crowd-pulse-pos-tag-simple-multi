@@ -27,7 +27,9 @@ import com.github.frapontillo.pulse.util.PulseLogger;
 import org.apache.logging.log4j.Logger;
 import rx.Observable;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Simple POS tagger that relies on external simple POS taggers based on the language they support.
@@ -37,6 +39,7 @@ import java.util.List;
  */
 public class SimpleMultiPOSTagger extends IPlugin<Message, Message, VoidConfig> {
     public static final String PLUGIN_NAME = "simplepostagger-multi";
+    private final Set<String> notFoundPosTaggers = new HashSet<>();
     private final static Logger logger = PulseLogger.getLogger(SimpleMultiPOSTagger.class);
 
     @Override public String getName() {
@@ -57,17 +60,19 @@ public class SimpleMultiPOSTagger extends IPlugin<Message, Message, VoidConfig> 
     }
 
     private List<Token> simplePosTagMessageTokens(Message message) {
-        if (message.getTokens() == null) {
-            return null;
-        }
         String language = message.getLanguage();
-        IPlugin<Message, Message, VoidConfig> actualTagger = null;
+        if ((message.getTokens() == null) || (notFoundPosTaggers.contains(language))) {
+            return message.getTokens();
+        }
+
+        IPlugin actualTagger = null;
         try {
-            actualTagger = PluginProvider.getPlugin("simplepostagger-" + language);
+            actualTagger = PluginProvider.getPlugin("simplepostagger-" + language).getInstance();
         } catch (ClassNotFoundException e) {
             logger.warn(
                     "Could not find a Simple POS Tagger implementation for the language \"{}\".",
                     language);
+            notFoundPosTaggers.add(language);
         }
         if (actualTagger != null && actualTagger instanceof ISingleablePlugin) {
             return ((ISingleablePlugin<Message, VoidConfig>) actualTagger)
